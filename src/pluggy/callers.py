@@ -52,9 +52,17 @@ def _multicall(hook_impls, caller_kwargs, firstresult=False):
         # run all wrapper post-yield blocks
         for gen in reversed(teardowns):
             try:
-                gen.send(outcome)
-                _raise_wrapfail(gen, "has second yield")
-            except StopIteration:
-                pass
+                try:
+                    gen.send(outcome)
+                    _raise_wrapfail(gen, "has second yield")
+                except StopIteration:
+                    pass
+                finally:
+                    # Exception is risen only if generator
+                    # suppresses GeneratorExit exception and yield
+                    # so _raise_wrapfail above is necessary
+                    gen.close()
+            except BaseException:
+                outcome._excinfo = sys.exc_info()
 
         return outcome.get_result()
