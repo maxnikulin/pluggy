@@ -116,6 +116,18 @@ def test_hookwrapper_not_yield():
         MC([m1], {})
 
 
+def test_hookwrapper_yield_not_executed():
+    @hookimpl(hookwrapper=True)
+    def m1():
+        if False:
+            yield
+        return
+
+    with pytest.raises(RuntimeError) as ex:
+        MC([m1], {})
+    assert "did not yield" in str(ex.value)
+
+
 def test_hookwrapper_too_many_yield():
     out = []
 
