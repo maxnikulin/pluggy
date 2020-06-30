@@ -29,12 +29,14 @@ def _multicall(hook_impls, caller_kwargs, firstresult=False):
                             )
 
                 if hook_impl.hookwrapper:
+                    gen = hook_impl.function(*args)
+
                     try:
-                        gen = hook_impl.function(*args)
                         next(gen)  # first yield
-                        teardowns.append(gen)
                     except StopIteration:
                         _raise_wrapfail(gen, "did not yield")
+
+                    teardowns.append(gen)
                 else:
                     res = hook_impl.function(*args)
                     if res is not None:
